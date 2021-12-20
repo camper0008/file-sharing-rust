@@ -4,6 +4,7 @@ extern crate rocket;
 
 mod api;
 mod file_storage;
+mod boundary_grabber;
 
 use rocket_contrib::serve::StaticFiles;
 
