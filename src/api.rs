@@ -1,4 +1,5 @@
-use crate::file_storage::{clear_files_stored, data_to_file, file_as_bytes, file_name_vector};
+use crate::file_storage::{clear_files_stored, parse_form_data, file_as_bytes, file_name_vector};
+use crate::boundary_grabber::{FormDataBoundaryGrabber};
 use rocket::http::Status;
 use rocket::response::content::Json;
 use rocket::response::status::{Custom, NotFound};
@@ -34,12 +35,11 @@ pub fn route_download_file(file_name: String) -> Result<Vec<u8>, NotFound<Json<S
 }
 
 #[post("/upload", data = "<data>")]
-pub fn route_upload_files(data: Data) -> &'static str {
-    match data_to_file(data) {
-        Ok(_) => {}
-        Err(_) => {}
+pub fn route_upload_files(data: Data, grabber: FormDataBoundaryGrabber) -> &'static str {
+    match parse_form_data(grabber.boundary, data) {
+        _ => {}
     }
-    "bruh"
+    "Hello, world!"
 }
 
 #[post("/clear")]
