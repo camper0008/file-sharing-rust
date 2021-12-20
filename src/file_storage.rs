@@ -1,5 +1,6 @@
 use rocket::Data;
 use std::fs;
+use std::io::{BufRead, Cursor};
 
 fn attempt_create_dir() -> std::io::Result<()> {
     fs::create_dir("file_storage")?;
@@ -27,15 +28,32 @@ pub fn file_as_bytes(file_name: String) -> std::io::Result<Vec<u8>> {
     Ok(fs::read(format!("file_storage/{}", file_name))?)
 }
 
-pub fn data_to_file(data: Data, boundary: String) -> std::io::Result<()> {
-    /*
-        look for 'boundary' header
-        --<boundary> on start
+pub fn get_data_from_vector(boundary: String, data: Vec<u8>) -> String {
+    let mut cursor = Cursor::new(data);
+    let mut buf = String::new();
+    loop {
+        let size = cursor.read_line(&mut buf).expect("an error occured reading from cursor");
+        
+        if size == 0 {
+            println!("Reached EOF");
+            break;
+        }
 
-        --<boundary>-- on end
-    */
-    data.stream_to_file("file_storage/file")
-        .map(|n| println!("Wrote {} bytes to /static/file", n))
+        let pos = buf.len() - size;
+        let line = &buf[pos..]
+        println!("line: {}", line);
+    }
+
+    "Hello world!".to_string()
+
+}
+
+pub fn parse_form_data(boundary: String, data: Data) -> std::io::Result<()> {
+    let mut vd = Vec::new();
+    data.stream_to(&mut vd).expect("an error occurred streaming");
+
+    let data = get_data_from_vector(boundary, vd);
+    Ok(())
 }
 
 pub fn file_name_vector() -> std::io::Result<Vec<String>> {
