@@ -3,18 +3,23 @@ use rocket::response::content;
 use crate::file_storage::{file_as_bytes, file_name_array};
 
 #[get("/filelist")]
-pub fn route_file_list<'a>() -> content::Json<&'a str> {
+pub fn route_file_list<'a>() -> content::Json<String> {
     match file_name_array() {
         Ok(v) => {
             let fold = v
                 .iter()
                 .fold("".to_string(), 
-                    |prev, curr| format!("{}, {}", prev, curr) 
+                    |prev, curr| {
+                        if prev == "" {
+                            format!("\"{}\"", curr) 
+                        } else {
+                            format!("{}, \"{}\"", prev, curr) 
+                        }
+                    }
                 );
-            let formatted: &'a str = format!("{{ \"files\": [{}] }}", fold);
-            return content::Json(formatted);
+            content::Json(format!("{{\"files\":[{}]}}", fold).to_string())
         } 
-        Err(_) => content::Json("{ \"files\": [] }")
+        Err(_) => content::Json("{\"files\":[]}".to_string())
     }
 }
 
