@@ -1,2 +1,2 @@
 # file-sharing-rust
-simple file sharing program in rust. WIP
+simple file sharing webserver in rust. WIP
