@@ -19,11 +19,11 @@ pub fn create_dir_if_not_exists() {
     } 
 }
 
-pub fn file_as_bytes(filename: String) -> std::io::Result<Vec<u8>> {
-    Ok(fs::read(format!("file_storage/{}", filename))?)
+pub fn file_as_bytes(file_name: String) -> std::io::Result<Vec<u8>> {
+    Ok(fs::read(format!("file_storage/{}", file_name))?)
 }
 
-pub fn file_name_array() -> std::io::Result<Vec<String>> {
+pub fn file_name_vector() -> std::io::Result<Vec<String>> {
     let mut file_names = Vec::new();
     for entry in fs::read_dir("file_storage")? {
         if let Ok(entry) = entry {
@@ -36,4 +36,19 @@ pub fn file_name_array() -> std::io::Result<Vec<String>> {
     }
 
     Ok(file_names)
+}
+
+pub fn clear_files_stored() -> std::io::Result<()> {
+    match file_name_vector() {
+        Ok(v) => {
+            v.iter().for_each(|file_name| { 
+                match fs::remove_file(format!("file_storage/{}", file_name)) {
+                    Ok(_) => {},
+                    Err(err) => println!("Unable to delete file {}: {}", file_name, err), 
+                } 
+            });
+            Ok(())
+        },
+        Err(err) => Err(err),
+    }    
 }
