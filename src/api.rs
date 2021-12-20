@@ -1,16 +1,29 @@
+use rocket::response::content;
+
+use crate::file_storage::{file_as_bytes, file_name_array};
+
 #[get("/filelist")]
-pub fn route_file_list() -> &'static str {
-    "Hello, world!"
+pub fn route_file_list<'a>() -> content::Json<&'a str> {
+    match file_name_array() {
+        Ok(v) => {
+            let fold = v
+                .iter()
+                .fold("".to_string(), 
+                    |prev, curr| format!("{}, {}", prev, curr) 
+                );
+            let formatted: &'a str = format!("{{ \"files\": [{}] }}", fold);
+            return content::Json(formatted);
+        } 
+        Err(_) => content::Json("{ \"files\": [] }")
+    }
 }
 
-use crate::file_storage::file_as_bytes;
-
-#[get("/files/<filename>")]
-pub fn route_download_file(filename: String) -> Vec<u8> {
-    let res = file_as_bytes(filename);
+#[get("/files/<file_name>")]
+pub fn route_download_file(file_name: String) -> Vec<u8> {
+    let res = file_as_bytes(file_name);
     match res {
         Ok(v) => v,
-        Err(_e) => "file not found".as_bytes().to_vec(),
+        Err(_) => "file not found".as_bytes().to_vec(),
     } 
 }
 
