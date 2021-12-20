@@ -1,3 +1,4 @@
+use rocket::Data;
 use std::fs;
 
 fn attempt_create_dir() -> std::io::Result<()> {
@@ -13,14 +14,28 @@ pub fn create_dir_if_not_exists() {
             if e.kind() == std::io::ErrorKind::AlreadyExists {
                 println!("Directory 'file_storage' already exists");
             } else {
-                panic!("Unexpected error while creating file_storage directory: {:?}", e);
+                panic!(
+                    "Unexpected error while creating file_storage directory: {:?}",
+                    e
+                );
             }
-        },
-    } 
+        }
+    }
 }
 
 pub fn file_as_bytes(file_name: String) -> std::io::Result<Vec<u8>> {
     Ok(fs::read(format!("file_storage/{}", file_name))?)
+}
+
+pub fn data_to_file(data: Data, boundary: String) -> std::io::Result<()> {
+    /*
+        look for 'boundary' header
+        --<boundary> on start
+
+        --<boundary>-- on end
+    */
+    data.stream_to_file("file_storage/file")
+        .map(|n| println!("Wrote {} bytes to /static/file", n))
 }
 
 pub fn file_name_vector() -> std::io::Result<Vec<String>> {
@@ -30,7 +45,7 @@ pub fn file_name_vector() -> std::io::Result<Vec<String>> {
             let compatible_file_name = entry.file_name().into_string();
             match compatible_file_name {
                 Ok(v) => file_names.push(v),
-                Err(_) => {}, 
+                Err(_) => {}
             }
         }
     }
@@ -41,14 +56,14 @@ pub fn file_name_vector() -> std::io::Result<Vec<String>> {
 pub fn clear_files_stored() -> std::io::Result<()> {
     match file_name_vector() {
         Ok(v) => {
-            v.iter().for_each(|file_name| { 
+            v.iter().for_each(|file_name| {
                 match fs::remove_file(format!("file_storage/{}", file_name)) {
-                    Ok(_) => {},
-                    Err(err) => println!("Unable to delete file {}: {}", file_name, err), 
-                } 
+                    Ok(_) => {}
+                    Err(err) => println!("Unable to delete file {}: {}", file_name, err),
+                }
             });
             Ok(())
-        },
+        }
         Err(err) => Err(err),
-    }    
+    }
 }

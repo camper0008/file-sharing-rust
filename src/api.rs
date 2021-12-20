@@ -1,26 +1,26 @@
-use rocket::response::content::Json;
-use rocket::response::status::{NotFound, Custom};
+use crate::file_storage::{clear_files_stored, data_to_file, file_as_bytes, file_name_vector};
 use rocket::http::Status;
-use crate::file_storage::{file_as_bytes, file_name_vector, clear_files_stored};
+use rocket::response::content::Json;
+use rocket::response::status::{Custom, NotFound};
+use rocket::Data;
 
 #[get("/filelist")]
 pub fn route_file_list<'a>() -> Result<Json<String>, Custom<Json<String>>> {
     match file_name_vector() {
         Ok(v) => {
-            let fold = v
-                .iter()
-                .fold("".to_string(), 
-                    |prev, curr| {
-                        if prev == "" {
-                            format!("\"{}\"", curr) 
-                        } else {
-                            format!("{}, \"{}\"", prev, curr) 
-                        }
-                    }
-                );
-            Json(format!("{{\"files\":[{}]}}", fold).to_string())
-        } 
-        Err(_) => Err(Custom(Status::InternalServerError, Json("{\"msg\":\"an error occurred trying to get file list\"}".to_string())))
+            let fold = v.iter().fold("".to_string(), |prev, curr| {
+                if prev == "" {
+                    format!("\"{}\"", curr)
+                } else {
+                    format!("{}, \"{}\"", prev, curr)
+                }
+            });
+            Ok(Json(format!("{{\"files\":[{}]}}", fold).to_string()))
+        }
+        Err(_) => Err(Custom(
+            Status::InternalServerError,
+            Json("{\"msg\":\"an error occurred trying to get file list\"}".to_string()),
+        )),
     }
 }
 
@@ -30,18 +30,25 @@ pub fn route_download_file(file_name: String) -> Result<Vec<u8>, NotFound<Json<S
     match res {
         Ok(v) => Ok(v),
         Err(_) => Err(NotFound(Json("{\"msg\": \"file not found\"}".to_string()))),
-    } 
+    }
 }
 
-#[post("/upload")]
-pub fn route_upload_files() -> &'static str {
-    "Hello, world!"
+#[post("/upload", data = "<data>")]
+pub fn route_upload_files(data: Data) -> &'static str {
+    match data_to_file(data) {
+        Ok(_) => {}
+        Err(_) => {}
+    }
+    "bruh"
 }
 
 #[post("/clear")]
 pub fn route_clear_files() -> Result<Json<String>, Custom<Json<String>>> {
     match clear_files_stored() {
         Ok(_) => Ok(Json("{\"msg\":\"files cleared successfully\"}".to_string())),
-        Err(_) => Err(Custom(Status::InternalServerError, Json("{\"msg\":\"an error occurred trying to clear files\"}".to_string()))),
+        Err(_) => Err(Custom(
+            Status::InternalServerError,
+            Json("{\"msg\":\"an error occurred trying to clear files\"}".to_string()),
+        )),
     }
 }
