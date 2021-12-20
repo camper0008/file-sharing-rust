@@ -3,9 +3,15 @@ pub fn route_file_list() -> &'static str {
     "Hello, world!"
 }
 
+use crate::file_storage::file_as_bytes;
+
 #[get("/files/<filename>")]
-pub fn route_download_file(filename: String) -> String {
-    format!("fuck dig {}", filename) 
+pub fn route_download_file(filename: String) -> Vec<u8> {
+    let res = file_as_bytes(filename);
+    match res {
+        Ok(v) => v,
+        Err(_e) => "file not found".as_bytes().to_vec(),
+    } 
 }
 
 #[post("/upload")]
