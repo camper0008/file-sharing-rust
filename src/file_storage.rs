@@ -30,6 +30,10 @@ pub fn file_as_bytes(file_name: String) -> std::io::Result<Vec<u8>> {
 
 pub fn get_data_from_vector(boundary: String, data: Vec<u8>) -> String {
     let mut cursor = Cursor::new(data);
+    // has to be replaced with a vector to read non-utf8 files (e.g. images)
+    // however, a vector does not support newlines
+    // might have to crawl through every character and parse that way?
+    // will look at tomorrow
     let mut buf = String::new();
     loop {
         let size = cursor.read_line(&mut buf).expect("an error occured reading from cursor");
@@ -40,7 +44,7 @@ pub fn get_data_from_vector(boundary: String, data: Vec<u8>) -> String {
         }
 
         let pos = buf.len() - size;
-        let line = &buf[pos..]
+        let line = &buf[pos..];
         println!("line: {}", line);
     }
 
