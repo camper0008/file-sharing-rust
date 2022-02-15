@@ -1,9 +1,9 @@
-use crate::file_storage::{clear_files_stored, parse_form_data, file_as_bytes, file_name_vector};
-use crate::boundary_grabber::{FormDataBoundaryGrabber};
+use crate::file_storage::{clear_files_stored, file_as_bytes, file_name_vector};
 use rocket::http::Status;
 use rocket::response::content::Json;
 use rocket::response::status::{Custom, NotFound};
-use rocket::Data;
+use rocket_upload::MultipartDatas;
+use std::path::Path;
 
 #[get("/filelist")]
 pub fn route_file_list<'a>() -> Result<Json<String>, Custom<Json<String>>> {
@@ -35,11 +35,11 @@ pub fn route_download_file(file_name: String) -> Result<Vec<u8>, NotFound<Json<S
 }
 
 #[post("/upload", data = "<data>")]
-pub fn route_upload_files(data: Data, grabber: FormDataBoundaryGrabber) -> &'static str {
-    match parse_form_data(grabber.boundary, data) {
-        _ => {}
+pub fn route_upload_files(data: MultipartDatas) -> &'static str {
+    for f in data.files {
+        f.persist(Path::new("file_storage"));
     }
-    "Hello, world!"
+    "Hello world"
 }
 
 #[post("/clear")]

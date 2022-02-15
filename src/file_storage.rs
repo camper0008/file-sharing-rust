@@ -1,6 +1,4 @@
-use rocket::Data;
 use std::fs;
-use std::io::{BufRead, Cursor};
 
 fn attempt_create_dir() -> std::io::Result<()> {
     fs::create_dir("file_storage")?;
@@ -26,38 +24,6 @@ pub fn create_dir_if_not_exists() {
 
 pub fn file_as_bytes(file_name: String) -> std::io::Result<Vec<u8>> {
     Ok(fs::read(format!("file_storage/{}", file_name))?)
-}
-
-pub fn get_data_from_vector(boundary: String, data: Vec<u8>) -> String {
-    let mut cursor = Cursor::new(data);
-    // has to be replaced with a vector to read non-utf8 files (e.g. images)
-    // however, a vector does not support newlines
-    // might have to crawl through every character and parse that way?
-    // will look at tomorrow
-    let mut buf = String::new();
-    loop {
-        let size = cursor.read_line(&mut buf).expect("an error occured reading from cursor");
-        
-        if size == 0 {
-            println!("Reached EOF");
-            break;
-        }
-
-        let pos = buf.len() - size;
-        let line = &buf[pos..];
-        println!("line: {}", line);
-    }
-
-    "Hello world!".to_string()
-
-}
-
-pub fn parse_form_data(boundary: String, data: Data) -> std::io::Result<()> {
-    let mut vd = Vec::new();
-    data.stream_to(&mut vd).expect("an error occurred streaming");
-
-    let data = get_data_from_vector(boundary, vd);
-    Ok(())
 }
 
 pub fn file_name_vector() -> std::io::Result<Vec<String>> {
