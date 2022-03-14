@@ -1,0 +1,3 @@
+# https://rocket.rs/v0.4/guide/configuration/
+[global]
+address = "0.0.0.0"
