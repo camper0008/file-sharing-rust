@@ -1,9 +1,26 @@
+/*
+  sorry for spaghetti code
+
+                  //== me when writing this, apparently
+                  ||
+                  vv    ___________
+  /  /          ______  |  i  <3  |
+  \  \    |_|_| |.  .|  |spaghetti|
+  /  /      |   |_\/_|  ¨¨¨¨¨|¨¨¨¨¨
+\@@@@@@/    @---|    |-------|
+ """"""     |   |    |
+                | || |
+                @@  @@
+*/
+
+
+
+
 const uploadInput = document.getElementById("file-upload");
 const uploadLabel = document.getElementById("file-upload-label");
 const clearInput = document.getElementById("file-clear");
 const fileContainer = document.getElementById("file-container");
 const MAX_FILENAME_LENGTH = 48;
-
 
 const updateFileView = async () => {
     const res = await (await fetch('api/filelist')).json()
