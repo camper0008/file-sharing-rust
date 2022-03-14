@@ -1,51 +1,45 @@
-/*
-  sorry for spaghetti code
-
-                  //== me when writing this, apparently
-                  ||
-                  vv    ___________
-  /  /          ______  |  i  <3  |
-  \  \    |_|_| |.  .|  |spaghetti|
-  /  /      |   |_\/_|  ¨¨¨¨¨|¨¨¨¨¨
-\@@@@@@/    @---|    |-------|
- """"""     |   |    |
-                | || |
-                @@  @@
-*/
-
-
-
-
 const uploadInput = document.getElementById("file-upload");
 const uploadLabel = document.getElementById("file-upload-label");
 const clearInput = document.getElementById("file-clear");
 const fileContainer = document.getElementById("file-container");
 const MAX_FILENAME_LENGTH = 48;
 
-const updateFileView = async () => {
-    const res = await (await fetch('api/filelist')).json()
-    const files = res.files;
-    fileContainer.innerHTML = "";
-    for (let i = 0; i < files.length; i++) {
-        const anchor = document.createElement('a');
-        anchor.innerText = files[i].length > MAX_FILENAME_LENGTH
-            ? (files[i].slice(0, MAX_FILENAME_LENGTH - 3) + '...')
-            : files[i];
-        anchor.setAttribute('href', `api/files/${files[i]}`);
-        anchor.setAttribute('download', '');
-        anchor.setAttribute('class', 'text interact file');
-        if (files[i].length > MAX_FILENAME_LENGTH)
-            anchor.setAttribute('title', files[i]);
-        fileContainer.appendChild(anchor);
+const shortenName = (name) => {
+    if (name.length < MAX_FILENAME_LENGTH) {
+        return name;
+    } else {
+        const shortened = name.slice(MAX_FILENAME_LENGTH - 3);
+        return shortened + "...";
     }
 }
 
+const createFileAnchorElement = (fileName) => {
+    const anchor = document.createElement('a');
+    anchor.innerText = shortenName(fileName);
+
+    anchor.setAttribute('href', `/api/files/${fileName}`);
+    anchor.setAttribute('download', '');
+    anchor.setAttribute('class', 'text interact file');
+
+    if (fileName.length > MAX_FILENAME_LENGTH)
+        anchor.setAttribute('title', fileName);
+
+    return anchor;
+}
+
+const updateFileView = async () => {
+    const res = await (await fetch('/api/filelist')).json()
+    const files = res.files;
+    const children = files.map(createFileAnchorElement);
+    fileContainer.replaceChildren(...children);
+}
+
 const uploadInputChanged = () => {
-    uploadLabel.innerText = `select files (${uploadInput.files.length} selected)`
+    uploadLabel.textContent = `select files (${uploadInput.files.length} selected)`
 }
 
 const clearInputClick = async () => {
-    await fetch('api/clear', {
+    await fetch('/api/clear', {
         method: "POST",
     });
     updateFileView();
@@ -53,8 +47,8 @@ const clearInputClick = async () => {
 
 const main = async () => {
     uploadInput.addEventListener('change', () => uploadInputChanged());
-    uploadInputChanged();
     clearInput.addEventListener('click', () => clearInputClick());
+    uploadInputChanged();
     updateFileView();
 }
 
