@@ -2,6 +2,7 @@ use crate::file_storage::{clear_files_stored, file_as_bytes, file_name_vector};
 use rocket::http::Status;
 use rocket::response::content::Json;
 use rocket::response::status::{Custom, NotFound};
+use rocket::response::Redirect;
 use rocket_upload::MultipartDatas;
 use std::path::Path;
 
@@ -11,16 +12,16 @@ pub fn route_file_list<'a>() -> Result<Json<String>, Custom<Json<String>>> {
         Ok(v) => {
             let fold = v.iter().fold("".to_string(), |prev, curr| {
                 if prev == "" {
-                    format!("\"{}\"", curr)
+                    format!(r#""{}""#, curr)
                 } else {
-                    format!("{}, \"{}\"", prev, curr)
+                    format!(r#"{}, "{}""#, prev, curr)
                 }
             });
-            Ok(Json(format!("{{\"files\":[{}]}}", fold).to_string()))
+            Ok(Json(format!(r#"{{"files":[{}]}}"#, fold).to_string()))
         }
         Err(_) => Err(Custom(
             Status::InternalServerError,
-            Json("{\"msg\":\"an error occurred trying to get file list\"}".to_string()),
+            Json(r#"{"msg":"an error occurred trying to get file list"}"#.to_string()),
         )),
     }
 }
@@ -30,25 +31,25 @@ pub fn route_download_file(file_name: String) -> Result<Vec<u8>, NotFound<Json<S
     let res = file_as_bytes(file_name);
     match res {
         Ok(v) => Ok(v),
-        Err(_) => Err(NotFound(Json("{\"msg\": \"file not found\"}".to_string()))),
+        Err(_) => Err(NotFound(Json(r#"{"msg": "file not found"}"#.to_string()))),
     }
 }
 
 #[post("/upload", data = "<data>")]
-pub fn route_upload_files(data: MultipartDatas) -> &'static str {
+pub fn route_upload_files(data: MultipartDatas) -> Redirect {
     for f in data.files {
         f.persist(Path::new("file_storage"));
     }
-    "Hello world"
+    Redirect::to("/")
 }
 
 #[post("/clear")]
 pub fn route_clear_files() -> Result<Json<String>, Custom<Json<String>>> {
     match clear_files_stored() {
-        Ok(_) => Ok(Json("{\"msg\":\"files cleared successfully\"}".to_string())),
+        Ok(_) => Ok(Json(r#"{"msg":"files cleared successfully"}"#.to_string())),
         Err(_) => Err(Custom(
             Status::InternalServerError,
-            Json("{\"msg\":\"an error occurred trying to clear files\"}".to_string()),
+            Json(r#"{"msg":"an error occurred trying to clear files"}"#.to_string()),
         )),
     }
 }
